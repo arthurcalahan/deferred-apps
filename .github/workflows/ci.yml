@@ -141,8 +141,17 @@ jobs:
 
       - name: List all test cases
         run: |
-          echo "Available test cases in tests.nix:"
+          echo "Available test cases in tests/ directory:"
           nix eval .#checks.x86_64-linux --apply 'checks: builtins.attrNames checks' --json | jq -r '.[]' | sort
+
+      - name: Run internal function tests
+        run: |
+          echo "Running internal function tests..."
+          for check in $(nix eval .#checks.x86_64-linux --apply 'checks: builtins.attrNames checks' --json | jq -r '.[]' | grep '^internal-'); do
+            echo "  Building: $check"
+            nix build ".#checks.x86_64-linux.$check" --print-build-logs
+          done
+          echo "✓ All internal function tests passed"
 
       - name: Run library tests
         run: |
@@ -152,6 +161,15 @@ jobs:
             nix build ".#checks.x86_64-linux.$check" --print-build-logs
           done
           echo "✓ All library tests passed"
+
+      - name: Run nested package tests
+        run: |
+          echo "Running nested package tests..."
+          for check in $(nix eval .#checks.x86_64-linux --apply 'checks: builtins.attrNames checks' --json | jq -r '.[]' | grep '^nested-'); do
+            echo "  Building: $check"
+            nix build ".#checks.x86_64-linux.$check" --print-build-logs
+          done
+          echo "✓ All nested package tests passed"
 
       - name: Run collision detection tests
         run: |
@@ -180,30 +198,23 @@ jobs:
           done
           echo "✓ All error handling tests passed"
 
-      - name: Verify build outputs structure
+      - name: Run compatibility tests
         run: |
-          echo "Verifying build output structure..."
-          result=$(nix build .#checks.x86_64-linux.lib-mkDeferredApp --print-out-paths)
-          
-          # Check that wrapper script exists (in libexec, not bin)
-          if [[ ! -f "$result/libexec/deferred-hello" ]]; then
-            echo "ERROR: deferred-hello wrapper not found in libexec"
-            exit 1
-          fi
-          
-          # Check that desktop file exists
-          if [[ ! -f "$result/share/applications/hello.desktop" ]]; then
-            echo "ERROR: hello.desktop not found"
-            exit 1
-          fi
-          
-          # Check that terminal symlink exists in bin
-          if [[ ! -L "$result/bin/hello" ]]; then
-            echo "ERROR: hello symlink not found"
-            exit 1
-          fi
-          
-          echo "✓ All build outputs verified successfully!"
+          echo "Running compatibility tests..."
+          for check in $(nix eval .#checks.x86_64-linux --apply 'checks: builtins.attrNames checks' --json | jq -r '.[]' | grep '^compat-'); do
+            echo "  Building: $check"
+            nix build ".#checks.x86_64-linux.$check" --print-build-logs
+          done
+          echo "✓ All compatibility tests passed"
+
+      - name: Run meta and integration tests
+        run: |
+          echo "Running meta and integration tests..."
+          for check in $(nix eval .#checks.x86_64-linux --apply 'checks: builtins.attrNames checks' --json | jq -r '.[]' | grep -E '^(meta-|integration-)'); do
+            echo "  Building: $check"
+            nix build ".#checks.x86_64-linux.$check" --print-build-logs
+          done
+          echo "✓ All meta and integration tests passed"
 
   # ===========================================================================
   # Summary job - provides clear status
