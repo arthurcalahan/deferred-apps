@@ -154,9 +154,9 @@ jobs:
           echo "Verifying build outputs..."
           result=$(nix build .#checks.x86_64-linux.lib-mkDeferredApp --print-out-paths)
           
-          # Check that wrapper script exists
-          if [[ ! -f "$result/bin/deferred-hello" ]]; then
-            echo "ERROR: deferred-hello wrapper not found"
+          # Check that wrapper script exists (in libexec, not bin)
+          if [[ ! -f "$result/libexec/deferred-hello" ]]; then
+            echo "ERROR: deferred-hello wrapper not found in libexec"
             exit 1
           fi
           
@@ -166,7 +166,7 @@ jobs:
             exit 1
           fi
           
-          # Check that terminal symlink exists
+          # Check that terminal symlink exists in bin
           if [[ ! -L "$result/bin/hello" ]]; then
             echo "ERROR: hello symlink not found"
             exit 1

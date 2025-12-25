@@ -4,7 +4,10 @@
 # download the actual package on first launch via `nix shell`.
 #
 # Key feature: Automatically detects executable names from nixpkgs metadata.
-# Example: obs-studio -> "obs", discord -> "Discord", vscode -> "code"
+# Example: obs-studio -> "obs", discord -> "discord", vscode -> "code"
+#
+# Terminal commands are normalized to lowercase for Unix convention.
+# The actual binary name (from meta.mainProgram) is used internally.
 #
 # Usage:
 #   mkDeferredApp { pname = "spotify"; }                    # Auto-detect exe
@@ -186,7 +189,14 @@ let
       validatedPname = validatePname pname;
 
       # Resolve with auto-detection fallbacks
+      # finalExe is the actual binary name inside the package (used with nix shell --command)
+      # This must match exactly what the package provides (e.g., "Discord" not "discord")
       finalExe = if exe != null then exe else getMainProgram validatedPname;
+
+      # Terminal command is the user-facing symlink name
+      # Normalized to lowercase for Unix convention (users expect to type "discord" not "Discord")
+      terminalCommand = lib.toLower finalExe;
+
       finalDesktopName = if desktopName != null then desktopName else toDisplayName validatedPname;
       finalDescription = if description != null then description else getDescription validatedPname;
 
@@ -270,7 +280,7 @@ let
       # Create the .desktop file using nixpkgs' makeDesktopItem for proper escaping
       desktopItem = makeDesktopItem {
         name = validatedPname;
-        exec = "@out@/bin/deferred-${validatedPname} %U";
+        exec = "@out@/libexec/deferred-${validatedPname} %U";
         icon = "@icon@"; # Placeholder, will be substituted
         comment = finalDescription;
         desktopName = finalDesktopName;
@@ -294,6 +304,7 @@ let
           iconNameFallback
           wrapperScript
           desktopItem
+          terminalCommand
           ;
         iconThemePath = "${iconThemePackage}/share/icons/${iconThemeName}";
         iconSizes = iconSizesList;
@@ -342,12 +353,12 @@ let
         fi
 
         # Create output directories
-        mkdir -p "$out/bin" "$out/share/applications"
+        mkdir -p "$out/libexec" "$out/share/applications"
 
         # ===========================================================================
-        # Create the wrapper script
+        # Create the wrapper script (in libexec, not directly in bin)
         # ===========================================================================
-        substitute "$wrapperScript" "$out/bin/deferred-$validatedPname" \
+        substitute "$wrapperScript" "$out/libexec/deferred-$validatedPname" \
           --replace-fail '@icon@' "$RESOLVED_ICON" \
           --replace-fail '@pname@' "$validatedPname" \
           --replace-fail '@flakeRef@' "$flakeRef" \
@@ -355,7 +366,7 @@ let
           --replace-fail '@needsImpure@' "$needsImpureStr" \
           --replace-fail '@gcRoot@' "$gcRootStr"
 
-        chmod +x "$out/bin/deferred-$validatedPname"
+        chmod +x "$out/libexec/deferred-$validatedPname"
 
         # ===========================================================================
         # Create the .desktop file (copy from makeDesktopItem and substitute)
@@ -373,9 +384,11 @@ let
 
         # ===========================================================================
         # Create terminal command symlink (optional)
+        # Only creates bin/ directory and symlinks when terminal commands are enabled
         # ===========================================================================
         if [ -n "$createTerminal" ]; then
-          ln -s "$out/bin/deferred-$validatedPname" "$out/bin/$finalExe"
+          mkdir -p "$out/bin"
+          ln -s "$out/libexec/deferred-$validatedPname" "$out/bin/$terminalCommand"
         fi
       '';
 
@@ -384,21 +397,23 @@ let
   detectTerminalCollisions =
     apps:
     let
-      # Get all (pname, exe) pairs where terminal command is enabled
+      # Get all (pname, terminalCommand) pairs where terminal command is enabled
       terminalApps = builtins.filter (app: app.createTerminalCommand or true) apps;
-      exeNames = map (
+      terminalCommands = map (
         app:
         let
           pname = app.pname or app;
           exe = app.exe or (getMainProgram pname);
+          # Terminal command is lowercase for Unix convention
+          terminalCommand = lib.toLower exe;
         in
         {
-          inherit pname exe;
+          inherit pname terminalCommand;
         }
       ) terminalApps;
 
-      # Group by exe name
-      grouped = builtins.groupBy (x: x.exe) exeNames;
+      # Group by terminal command name
+      grouped = builtins.groupBy (x: x.terminalCommand) terminalCommands;
 
       # Find duplicates
       duplicates = lib.filterAttrs (_: v: builtins.length v > 1) grouped;
@@ -407,7 +422,7 @@ let
       null
     else
       let
-        formatDup = exe: apps: "  '${exe}' -> ${lib.concatMapStringsSep ", " (a: "'${a.pname}'") apps}";
+        formatDup = cmd: apps: "  '${cmd}' -> ${lib.concatMapStringsSep ", " (a: "'${a.pname}'") apps}";
         dupList = lib.mapAttrsToList formatDup duplicates;
       in
       ''
