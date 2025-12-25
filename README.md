@@ -22,7 +22,7 @@ Add to your `flake.nix`:
 
 ```nix
 {
-  inputs.deferred-apps.url = "github:WitteShadovv/deferred-apps/v0.1.0";
+  inputs.deferred-apps.url = "github:WitteShadovv/deferred-apps/v0.1.1";
 
   outputs = { nixpkgs, deferred-apps, ... }: {
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
@@ -173,8 +173,8 @@ environment.systemPackages = [
 ```nix
 let
   deferred-apps = import (fetchTarball {
-    url = "https://github.com/WitteShadovv/deferred-apps/archive/refs/tags/v0.1.0.tar.gz";
-    sha256 = "13n8skc1jx0zkfg5jy0p867wlh6vri7riyv386102ckankkjc0qy";
+    url = "https://github.com/WitteShadovv/deferred-apps/archive/refs/tags/v0.1.1.tar.gz";
+    sha256 = "0qf462jq2vsaqshw1v7kgg62lsylzlvzdg523rdnqxvmnf2v2l4k";
   });
 in {
   imports = [ deferred-apps.nixosModules.default ];
